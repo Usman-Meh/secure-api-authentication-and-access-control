@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================
-#  WGU D385 Task 2 - Stop Application
-#  macOS Script
+#  Construction Equipment Rental API - Stop Application
+#  macOS / Linux Script
 # ============================================
 
 echo "============================================"

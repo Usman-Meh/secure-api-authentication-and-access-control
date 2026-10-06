@@ -1,50 +1,12 @@
 """
-WGU Construction Equipment Rental - Flask API Application (Task 2 Student Starter)
+Construction Equipment Rental API - original baseline (intentionally vulnerable).
 
-Scenario:
-You have joined a development team responsible for securing an internal API that
-retrieves user data and interacts with a backend service. The API is experiencing
-unauthorized access attempts, suspicious input patterns, and malfunctioning authorization
-logic.
+This is the unmodified starting point of the security review. It contains
+hardcoded secrets, plaintext passwords, missing API authentication and broken
+authorization, among other weaknesses, and is kept only for comparison.
+DO NOT DEPLOY. The hardened version is app_solution.py.
 
-The security team has provided you with:
-- This Python web service (review it for security issues)
-- A flake8 static analysis report (task_2_flake8_report.txt)
-- A bandit security scan report (task_2_bandit_report.txt)
-- Logs showing suspicious traffic (network_security_log.txt)
-
-Your Task:
-1. Review task_2_flake8_report.txt to identify GENERAL security vulnerabilities (Section A)
-2. Review task_2_bandit_report.txt to identify API security vulnerabilities (Section B)
-3. Remediate the vulnerabilities and write test cases (Section C)
-4. Write a Security Mitigation Report (Section D)
-
-INSTRUCTIONS:
-- Complete all TODO items marked throughout this file
-- Save your completed work as app_solution.py
-- Document your changes in your Security Mitigation Report
-- Reference the flake8 and bandit reports for vulnerability identification
-
-RUBRIC SECTIONS:
-  Section A — General Security Vulnerabilities (from flake8 report)
-    A1: Provide screenshot of insecure code with line numbers (pick 2 vulnerabilities)
-    A2: Implement secure replacement code for each vulnerability
-    A3: Comment out the original insecure code after remediation
-  Section B — API Security Vulnerabilities (from bandit report)
-    B1: Provide screenshot of insecure API code with line numbers (pick 2 vulnerabilities)
-    B2: Implement secure replacement code for each vulnerability
-    B3: Comment out the original insecure API code after remediation
-  Section C — Test Cases
-    C1: Use pytest framework with test_ naming convention
-    C2: Include assert statements in each test
-    C3: Execute tests successfully (all pass)
-    C4: Add descriptive print() statements explaining test outcomes
-    C5: Provide 4 screenshots (2 general + 2 API test pass results)
-  Section D — Written Security Mitigation Report
-    D1: Describe 2 mitigation strategies for each of the 4 vulnerabilities
-    D2: Describe 2 input validation techniques
-    D3: Describe 2 exception handling improvements
-    D4: Describe 1 encryption method for REST/API security
+Static-analysis output for this file is in docs/baseline/.
 """
 
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
@@ -54,26 +16,14 @@ import os
 app = Flask(__name__)
 
 # =============================================================================
-# SECTION A: GENERAL SECURITY VULNERABILITY #1 — Hardcoded Secrets
-# Identified in: task_2_flake8_report.txt (lines 79-84, severity S105)
+# Finding 1 (general) — Hardcoded Secrets
+# Identified in: docs/baseline/flake8_report.txt (severity S105)
 # =============================================================================
-# TODO (Section A — Vulnerability #1): HARDCODED SECRETS
-#
-# The flake8 report flags hardcoded credentials on lines 79-84.
-# This is a GENERAL security vulnerability because:
+# The flake8 report flags hardcoded credentials.
+# Why this matters:
 #   - Secrets in source code are exposed in version control
 #   - Cannot rotate credentials without code changes
 #   - Violates secure configuration management best practices
-#
-# YOUR TASKS:
-#   A1: Take a screenshot of this insecure code with line numbers visible
-#   A2: Implement a secure replacement using environment variables or secrets management
-#       Example: app.secret_key = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(32))
-#   A3: Comment out the original insecure code (do NOT delete it) — leave it
-#       visible so evaluators can see what was replaced
-#
-# For your Section D report:
-#   D1: Describe 2 mitigation strategies for this vulnerability
 # =============================================================================
 
 app.secret_key = 'supersecretkeyforflasksessions'
@@ -91,24 +41,14 @@ EQUIPMENT_PRICES = {
 }
 
 # =============================================================================
-# SECTION A: GENERAL SECURITY VULNERABILITY #2 — Plaintext Password Storage
-# Identified in: task_2_flake8_report.txt (lines 114-119, severity S105)
+# Finding 2 (general) — Plaintext Password Storage
+# Identified in: docs/baseline/flake8_report.txt (severity S105)
 # =============================================================================
-# TODO (Section A — Vulnerability #2): PLAINTEXT PASSWORDS
-#
 # The flake8 report flags plaintext passwords stored in the user database.
-# This is a GENERAL security vulnerability because:
+# Why this matters:
 #   - If the database is compromised, all passwords are immediately exposed
 #   - Passwords should be hashed using bcrypt, scrypt, argon2, or PBKDF2
 #   - Plaintext storage violates CWE-256 (Plaintext Storage of a Password)
-#
-# YOUR TASKS:
-#   A1: Take a screenshot of this insecure code with line numbers visible
-#   A2: Implement password hashing (e.g., hashlib.pbkdf2_hmac or bcrypt)
-#   A3: Comment out the original plaintext passwords after remediation
-#
-# For your Section D report:
-#   D1: Describe 2 mitigation strategies for this vulnerability
 # =============================================================================
 
 USERS_DB = {
@@ -119,12 +59,11 @@ USERS_DB = {
 }
 
 # =============================================================================
-# Additional General Vulnerabilities (from flake8 report)
-# You may also choose from these for Section A:
-#   - Missing input validation (lines 584-586, no type/boundary checks)
-#   - Unsafe exception handling exposing internals (lines 346-347, CWE-209)
-#   - XSS: unsanitized input reflected in response (line 498)
-#   - Sensitive data exposure / PII in records (lines 131-133, SSN fields)
+# Additional general findings (flake8 report and code review):
+#   - Missing input validation (no type/boundary checks)
+#   - Unsafe exception handling exposing internals (CWE-209)
+#   - XSS: unsanitized input reflected in response
+#   - Sensitive data exposure / PII in records (SSN fields)
 # =============================================================================
 
 RENTAL_RECORDS = [
@@ -176,38 +115,23 @@ def init_database():
 
 
 # =============================================================================
-# SECTION B: API SECURITY VULNERABILITY #1 — Missing API Authentication
-# Related bandit findings: B105 (hardcoded credentials in USERS_DB, lines 115-118)
+# Finding 3 (API) — Missing API Authentication
+# Related bandit findings: B105 (hardcoded credentials in USERS_DB)
 # Code review finding: require_api_key() always returns None (CWE-306)
 # =============================================================================
-# TODO (Section B — Vulnerability #1): MISSING API AUTHENTICATION
-#
 # The bandit report flags hardcoded credentials (B105) in USERS_DB.
 # Code review reveals that require_api_key() always returns None —
 # meaning NO API endpoint is ever authenticated. Anyone can call any endpoint.
 #
-# This is an API security vulnerability because:
+# Why this matters:
 #   - CWE-306: Missing Authentication for Critical Function
 #   - All protected resources are exposed to unauthenticated users
 #   - Combined with broken admin endpoints, this allows full data access
-#
-# YOUR TASKS:
-#   B1: Take a screenshot of this insecure code with line numbers visible
-#   B2: Implement proper API key validation:
-#       - Extract API key from Authorization header (Bearer token)
-#       - Validate against USERS_DB
-#       - Return username if valid, None if invalid
-#   B3: Comment out the original insecure code after remediation
-#
-# For your Section D report:
-#   D1: Describe 2 mitigation strategies for this vulnerability
 # =============================================================================
 
 def require_api_key():
     """
-    TODO (Section B): Implement API Key Authentication
-
-    This function should:
+    Intended behaviour (NOT implemented in this baseline):
     1. Extract the API key from the Authorization header
        - Expected format: "Bearer <api_key>"
     2. Validate the API key against USERS_DB
@@ -222,34 +146,22 @@ def require_api_key():
 
 
 # =============================================================================
-# SECTION B: API SECURITY VULNERABILITY #2 — Broken Authorization
-# Related bandit findings: B201 (debug=True exposes Werkzeug debugger, line 652)
+# Finding 4 (API) — Broken Authorization
+# Related bandit findings: B201 (debug=True exposes Werkzeug debugger)
 # Code review finding: require_role() always returns True (CWE-862)
 # =============================================================================
-# TODO (Section B — Vulnerability #2): BROKEN AUTHORIZATION / LEAST PRIVILEGE
-#
 # Code review reveals that require_role() always returns True.
 # This means ANY user can access ANY endpoint, including admin functions.
 #
-# This is an API security vulnerability because:
+# Why this matters:
 #   - CWE-862: Missing Authorization
 #   - Violates the Principle of Least Privilege
 #   - Regular users can delete other users, view all data, etc.
-#
-# YOUR TASKS:
-#   B1: Take a screenshot of this insecure code with line numbers visible
-#   B2: Implement proper role-based authorization checking
-#   B3: Comment out the original insecure code after remediation
-#
-# For your Section D report:
-#   D1: Describe 2 mitigation strategies for this vulnerability
 # =============================================================================
 
 def require_role(username, required_role):
     """
-    TODO (Section B): Implement Role-Based Authorization (Least Privilege)
-
-    This function should:
+    Intended behaviour (NOT implemented in this baseline):
     1. Look up the user's role from USERS_DB
     2. Check if the user's role meets the required permission level
     3. Return True if authorized, False otherwise
@@ -265,15 +177,14 @@ def require_role(username, required_role):
 
 
 # =============================================================================
-# Additional API Vulnerabilities (from bandit report + code review)
-# You may also choose from these for Section B:
-#   - Broken access control on admin endpoints (CWE-306, lines 432-467)
-#   - Missing rate limiting / DoS vulnerable (CWE-307, lines 280-292)
+# Additional API findings (bandit report and code review):
+#   - Broken access control on admin endpoints (CWE-306)
+#   - Missing rate limiting / DoS vulnerable (CWE-307)
 #   - Insecure API key transmission in URL params (CWE-598)
 #   - Unrestricted data exposure via REST APIs / SSN (CWE-359)
 #   - Missing least privilege — all users see all data (CWE-285)
-#   - SQL injection in API endpoint (B608, CWE-89, line 319)
-#   - Flask debug mode exposing Werkzeug debugger (B201, CWE-94, line 652)
+#   - SQL injection in API endpoint (B608, CWE-89)
+#   - Flask debug mode exposing Werkzeug debugger (B201, CWE-94)
 # =============================================================================
 
 # =============================================================================
@@ -307,15 +218,10 @@ def get_user_data():
     Retrieve user information.
 
     VULNERABILITIES PRESENT (see flake8 and bandit reports):
-    - SQL Injection via string concatenation (line 319)
-    - Unsafe exception handling exposing internals (lines 346-347)
+    - SQL Injection via string concatenation
+    - Unsafe exception handling exposing internals
     - No authentication required
     - Sensitive data returned in response
-
-    TODO (Section A — if chosen): Fix SQL injection and/or exception handling
-    TODO (Section B — if chosen): Add API authentication
-    TODO (Section D — D2): Describe input validation techniques
-    TODO (Section D — D3): Describe exception handling improvements
     """
     username = request.args.get('username', '')
 
@@ -347,7 +253,6 @@ def get_user_data():
             return jsonify({"status": "error", "message": "User not found"}), 404
 
     # VULNERABLE: Exposes internal error details to client (CWE-209)
-    # TODO (Section D — D3): Describe how to improve exception handling
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -362,7 +267,6 @@ def get_rentals():
     - No authorization / least privilege violation (CWE-285)
     - SSN/PII exposed in response (CWE-359)
 
-    TODO (Section B — if chosen): Add authentication and authorization
     TODO: Filter sensitive fields (SSN) from response
     """
     # TODO: Add authentication check
@@ -390,12 +294,9 @@ def create_rental():
     Create a new rental record.
 
     VULNERABILITIES PRESENT (see flake8 report):
-    - No input validation (lines 584-586)
+    - No input validation
     - No type checking or boundary checks
     - SSN field included in new records
-
-    TODO (Section A — if chosen): Add input validation
-    TODO (Section D — D2): Describe 2 input validation techniques used
     """
     # TODO: Add authentication check
     # TODO: Add rate limiting check
@@ -441,8 +342,6 @@ def admin_get_all_users():
 
     VULNERABILITY (CWE-306): No authentication or authorization!
     Anyone can access the full list of users.
-
-    TODO (Section B — if chosen): Require API key + admin role
     """
     # INSECURE: No authentication or authorization check!
     return jsonify({
@@ -459,8 +358,6 @@ def admin_delete_user():
 
     VULNERABILITY (CWE-306): No authentication on destructive endpoint!
     Anyone can delete any user without authentication.
-
-    TODO (Section B — if chosen): Require API key + admin role
     """
     # INSECURE: No authentication check on destructive operation!
     username = request.args.get('username', '')
@@ -483,10 +380,7 @@ def search_equipment():
 
     VULNERABILITY: Search query reflected directly in response without sanitization.
     This enables Cross-Site Scripting (XSS) attacks.
-    See network_security_log.txt for XSS evidence.
-
-    TODO (Section A — if chosen): Sanitize input before reflecting in response
-    TODO (Section D — D2): Describe input sanitization as a validation technique
+    See docs/baseline/network_security_log.txt for XSS evidence.
     """
     query = request.args.get('q', '')
 
@@ -518,7 +412,6 @@ def authenticate():
     - Plaintext password comparison
     - No account lockout
 
-    TODO (Section B — if chosen): Implement rate limiting
     TODO: Use hashed password comparison
     """
     # TODO: Check rate limit before processing
@@ -574,7 +467,7 @@ def rent_equipment():
     """
     Equipment rental form endpoint.
 
-    VULNERABILITY: Missing input validation (flake8 lines 584-586)
+    VULNERABILITY: Missing input validation
     - No type checking on 'days' input
     - No boundary validation
     - Could crash or produce negative charges
@@ -606,43 +499,6 @@ def rent_equipment():
 def api_documentation():
     """API Documentation page."""
     return render_template('api_docs.html')
-
-
-# =============================================================================
-# SECTION D: WRITTEN REPORT GUIDANCE
-# =============================================================================
-"""
-TODO (Section D): Security Mitigation Report
-
-Write a report covering the following rubric items:
-
-D1 — Mitigation Strategies (for all 4 vulnerabilities you identified in A and B):
-    For EACH of the 4 vulnerabilities (2 general + 2 API), describe:
-    - What the vulnerability is and why it is dangerous
-    - 2 specific mitigation strategies to address it
-    Example: For hardcoded secrets — (1) use environment variables,
-             (2) use a secrets management service like AWS Secrets Manager
-
-D2 — Input Validation Techniques:
-    Describe 2 input validation techniques you implemented or would implement:
-    - Example: Type checking (verify data types before processing)
-    - Example: Boundary checking (enforce min/max values)
-    - Example: Whitelist validation (only allow known-good values)
-    - Example: Sanitization (remove/escape dangerous characters)
-
-D3 — Exception Handling Improvements:
-    Describe 2 ways to improve exception handling:
-    - Example: Return generic error messages to clients (not str(e))
-    - Example: Log detailed errors server-side for debugging
-    - Example: Use specific exception types instead of bare except
-    - Example: Implement graceful degradation
-
-D4 — Encryption Method:
-    Describe 1 encryption method used for REST/API security:
-    - Example: TLS/HTTPS for encrypting data in transit
-    - Example: PBKDF2/bcrypt for password hashing at rest
-    - Example: JWT signing for token integrity
-"""
 
 
 # =============================================================================

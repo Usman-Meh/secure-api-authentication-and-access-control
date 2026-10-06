@@ -1,11 +1,11 @@
 @echo off
 REM ============================================
-REM  WGU D385 Task 2 - Start Application
+REM  Construction Equipment Rental API - Start Application
 REM  Windows Script
 REM ============================================
 
 echo ============================================
-echo  WGU Construction Equipment Rental API
+echo  Construction Equipment Rental API (hardened)
 echo  Starting Application...
 echo ============================================
 echo.
@@ -31,5 +31,5 @@ REM Start the Flask application
 echo Starting Flask server on http://localhost:5000
 echo Press Ctrl+C to stop the server.
 echo.
-python app_student.py
+python app_solution.py
 pause

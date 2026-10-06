@@ -1,5 +1,5 @@
 # Network and API Security Log
-# WGU Construction Equipment Rental API System
+# Construction Equipment Rental API System
 # Date Range: 2025-12-22 to 2025-12-28
 # ============================================================
 

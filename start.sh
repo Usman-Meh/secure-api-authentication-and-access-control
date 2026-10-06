@@ -1,11 +1,11 @@
 #!/bin/bash
 # ============================================
-#  WGU D385 Task 2 - Start Application
-#  macOS Script
+#  Construction Equipment Rental API - Start Application
+#  macOS / Linux Script
 # ============================================
 
 echo "============================================"
-echo " WGU Construction Equipment Rental API"
+echo " Construction Equipment Rental API (hardened)"
 echo " Starting Application..."
 echo "============================================"
 echo ""
@@ -29,4 +29,4 @@ echo ""
 echo "Starting Flask server on http://localhost:5000"
 echo "Press Ctrl+C to stop the server."
 echo ""
-python3 app_student.py
+python3 app_solution.py
